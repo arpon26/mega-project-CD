@@ -121,7 +121,7 @@ spec:
     spec:
       containers:
       - name: bankapp
-        image: arpondas26/bankapp:v1
+        image: arpondas26/bankapp:v1   # Jenkins replaces this tag with the Git SHA after each build
         resources:
           requests:
             memory: "256Mi"
