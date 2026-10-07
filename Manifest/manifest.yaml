@@ -1,4 +1,3 @@
----
 # Secrets for MySQL
 apiVersion: v1
 kind: Secret
@@ -18,19 +17,7 @@ metadata:
 data:
   MYSQL_DATABASE: "bankappdb"
 ---
-# Storage Class for EBS
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: ebs-sc
-provisioner: ebs.csi.aws.com
-parameters:
-  type: gp3
-  fsType: ext4
-reclaimPolicy: Retain
-volumeBindingMode: WaitForFirstConsumer
----
-# Persistent Volume Claim for MySQL
+# Persistent Volume Claim for MySQL (k3s local-path storage)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -39,7 +26,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: ebs-sc
+  storageClassName: local-path
   resources:
     requests:
       storage: 5Gi
@@ -134,7 +121,7 @@ spec:
     spec:
       containers:
       - name: bankapp
-        image: ayyubkhancs/bankapp:v12
+        image: arpondoc/bankapp:v1
         resources:
           requests:
             memory: "256Mi"
@@ -178,9 +165,10 @@ metadata:
   name: bankapp-service
   namespace: webapps
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
   - port: 80
     targetPort: 8080
+    nodePort: 30080
   selector:
     app: bankapp
