@@ -4,18 +4,28 @@ pipeline {
     stages {
         stage('Git Checkout') {
             steps {
-                git branch: 'main', credentialsId: 'git', url: 'https://github.com/jaiswaladi246/Mega-Project-CD.git'
+                git branch: 'main', credentialsId: 'git', url: 'https://github.com/arpon26/mega-project-CD.git'
             }
         }
-        
-        stage('Kubernetes Deployment') {
+
+        stage('Deploy to Kubernetes') {
             steps {
-                withKubeConfig(caCertificate: '', clusterName: 'devopsshack-cluster', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://952FB702C508F688D873376083B31DF5.gr7.ap-south-1.eks.amazonaws.com') {
-                    sh "kubectl apply -f Manifest/manifest.yaml -n webapps"
-                    sh "kubectl apply -f Manifest/HPA.yaml "
-                    sleep 30
-                    sh "kubectl get pods -n webapps"
-                    sh "kubectl get service -n webapps"
+                withKubeConfig(caCertificate: '', clusterName: 'k3s', contextName: '', credentialsId: 'k8-token',
+                               namespace: 'webapps', restrictKubeConfigAccess: false,
+                               serverUrl: 'https://192.168.68.56:6443') {
+                    sh 'kubectl apply -f Manifest/manifest.yaml'
+                    sh 'kubectl rollout status deployment/mysql -n webapps --timeout=300s'
+                    sh 'kubectl rollout status deployment/bankapp -n webapps --timeout=400s'
+                }
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: 'k3s', contextName: '', credentialsId: 'k8-token',
+                               namespace: 'webapps', restrictKubeConfigAccess: false,
+                               serverUrl: 'https://192.168.68.56:6443') {
+                    sh 'kubectl get pods,svc,pvc -n webapps'
                 }
             }
         }
