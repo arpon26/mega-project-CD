@@ -121,7 +121,7 @@ spec:
     spec:
       containers:
       - name: bankapp
-        image: arpondoc/bankapp:v1
+        image: arpondas26/bankapp:v1
         resources:
           requests:
             memory: "256Mi"
